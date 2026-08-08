@@ -5,8 +5,8 @@ RSpec.describe "Api::Expenses", type: :request do
   let!(:transport_category) { Category.create!(name: "Transport") }
 
   describe "GET /api/expenses" do
-  let!(:expense1) { Expense.create!(description: "Lunch", amount: 100.00, category: food_category, date: Date.today) }
-  let!(:expense2) { Expense.create!(description: "Taxi", amount: 50.00, category: transport_category, date: Date.today) }
+    let!(:expense1) { Expense.create!(description: "Lunch", amount: 100.00, category: food_category, date: Date.today - 1) }
+    let!(:expense2) { Expense.create!(description: "Taxi", amount: 50.00, category: transport_category, date: Date.today) }
 
     it "returns all expenses with category information" do
       get "/api/expenses"
@@ -16,12 +16,34 @@ RSpec.describe "Api::Expenses", type: :request do
       expect(json.length).to eq(2)
     end
 
-    it "returns expenses in descending order by created_at" do
+    it "returns expenses in descending order by expense date" do
       get "/api/expenses"
 
       json = JSON.parse(response.body)
       expect(json.first["id"]).to eq(expense2.id)
       expect(json.last["id"]).to eq(expense1.id)
+    end
+
+    it "orders by expense date, not creation timestamp" do
+      Expense.create!(description: "Backdated", amount: 25.00, category: food_category, date: Date.today - 2)
+
+      get "/api/expenses"
+
+      json = JSON.parse(response.body)
+      expect(json.map { |e| e["description"] }).to eq([ "Taxi", "Lunch", "Backdated" ])
+    end
+
+    it "filters expenses by the expense date, not creation timestamp" do
+      Expense.create!(description: "Last Month", amount: 10.00, category: food_category, date: Date.today.prev_month)
+
+      year = Date.today.prev_month.year
+      month = Date.today.prev_month.month
+
+      get "/api/expenses", params: { year: year, month: month }
+
+      expect(response).to have_http_status(:success)
+      json = JSON.parse(response.body)
+      expect(json.map { |e| e["description"] }).to eq([ "Last Month" ])
     end
   end
 
