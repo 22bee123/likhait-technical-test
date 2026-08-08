@@ -17,6 +17,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install MySQL client libraries
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libmysqlclient-dev
+
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
@@ -32,6 +35,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Install MySQL client libraries
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libmysqlclient-dev
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -56,11 +62,11 @@ jobs:
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
-      - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y google-chrome-stable curl default-mysql-client libjemalloc2 libvips
-
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Install MySQL client libraries
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libmysqlclient-dev
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
