@@ -5,6 +5,10 @@ on:
   push:
     branches: [ main ]
 
+defaults:
+  run:
+    working-directory: backend
+
 jobs:
   scan_ruby:
     runs-on: ubuntu-latest
@@ -18,6 +22,7 @@ jobs:
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+          working-directory: backend
 
       - name: Scan for common Rails security vulnerabilities using static analysis
         run: bin/brakeman --no-pager
@@ -33,6 +38,7 @@ jobs:
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+          working-directory: backend
 
       - name: Lint code for consistent style
         run: bin/rubocop -f github
@@ -49,12 +55,6 @@ jobs:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
-      # redis:
-      #   image: redis
-      #   ports:
-      #     - 6379:6379
-      #   options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
-
     steps:
       - name: Install packages
         run: sudo apt-get update && sudo apt-get install --no-install-recommends -y google-chrome-stable curl default-mysql-client libjemalloc2 libvips
@@ -67,6 +67,7 @@ jobs:
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+          working-directory: backend
 
       - name: Prepare test database
         env:
@@ -78,7 +79,6 @@ jobs:
         env:
           RAILS_ENV: test
           DATABASE_URL: mysql2://127.0.0.1:3306
-          # REDIS_URL: redis://localhost:6379/0
         run: bundle exec rspec
 
       - name: Keep screenshots from failed system tests
@@ -86,5 +86,5 @@ jobs:
         if: failure()
         with:
           name: screenshots
-          path: ${{ github.workspace }}/tmp/screenshots
+          path: backend/tmp/screenshots
           if-no-files-found: ignore
